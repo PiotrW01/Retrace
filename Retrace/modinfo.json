@@ -1,0 +1,14 @@
+{
+  "type": "code",
+  "modid": "retrace",
+  "name": "Retrace",
+  "authors": [
+    "Unknown"
+  ],
+  "description": "Basic pathfinder",
+  "version": "1.0.0",
+  "dependencies": {
+    "game": "1.20.12"
+  },
+  "side": "Client"
+}
