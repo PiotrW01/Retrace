@@ -95,22 +95,18 @@ namespace Retrace.assets.retrace.pathfinding
 
             _id = _api.World.RegisterGameTickListener((dt) =>
             {
-                // TODO: if over nextPos stop all input
-                // also check that for the future positions part
                 pathRenderer.step = step;
                 Vec3d nextPos = _path[step].pos.ToVec3d();
 
                 AdjustYOffset(nextPos, _path[step].block);
                 OffsetToBlockCenter(nextPos);
 
-                _player.Entity.Controls.Forward = true;
-                _player.Entity.Controls.Sprint = _settings.CanSprint;
-                if (nextPos.Y - _player.Entity.Pos.Y > 0.3 || _player.Entity.FeetInLiquid)
-                {
-                    _player.Entity.Controls.Jump = true;
-                    _player.Entity.Controls.Sprint = false;
-                }
-                _player.CameraYaw = (float)Utils.GetYawBetweenPositions(nextPos, new Vec3d(_player.Entity.Pos));
+                // TODO: if over nextPos stop all input
+                // also check that for the future positions part
+                ApplyMovement(nextPos);
+                ApplyRotation(nextPos);
+                ApplySprintAndJump(nextPos);
+                
 
                 if (IsNextPosReached(nextPos, ref step))
                 {
@@ -278,6 +274,47 @@ namespace Retrace.assets.retrace.pathfinding
                 }
             }
             return posReached;
+        }
+
+        private void ApplySprintAndJump(Vec3d nextPos)
+        {
+            _player.Entity.Controls.Sprint = _settings.CanSprint;
+            if (nextPos.Y - _player.Entity.Pos.Y > 0.3 || _player.Entity.FeetInLiquid)
+            {
+                _player.Entity.Controls.Jump = true;
+                _player.Entity.Controls.Sprint = false;
+            }
+        }
+
+        private void ApplyMovement(Vec3d nextPos)
+        {
+            //double dy = _player.Entity.Pos.Y - _player.Entity.PositionBeforeFalling.Y;
+            Vec3d deltaBlockPos = nextPos - new Vec3d(_player.Entity.Pos);
+            double tolerance = 0.3;
+            if(Math.Abs(deltaBlockPos.X) <= tolerance && 
+               Math.Abs(deltaBlockPos.Z) <= tolerance && 
+               deltaBlockPos.Y < 0)
+            {
+                _player.Entity.Controls.Forward = false;
+                return;
+            }
+            else
+            {
+                _player.Entity.Controls.Forward = true;
+            }
+/*            if (!_player.Entity.OnGround && dy < 0)
+            {
+                _player.Entity.Controls.Forward = false;
+            }
+            else
+            {
+                _player.Entity.Controls.Forward = true;
+            }*/
+        }
+
+        private void ApplyRotation(Vec3d nextPos)
+        {
+            _player.CameraYaw = (float)Utils.GetYawBetweenPositions(nextPos, new Vec3d(_player.Entity.Pos));
         }
 
         private void AdjustYOffset(Vec3d nextPos, Block nextPosBlock)
