@@ -14,6 +14,12 @@ Retrace is a basic pathfinder mod made for Vintage Story.
 
 ### Commands
 
-- .retrace goto [x] [y] [z] - try find path to specified location
-
+- .retrace goto [x] [y] [z] - try find path to specified location=
 - .retrace canSprint [true/false] - sets whether player can sprint or not
+
+## Planned features
+
+- Jump across 1+ block gaps
+- Climb ladders
+- Cross deeper waters properly
+- Mine/Place blocks
