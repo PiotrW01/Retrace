@@ -28,7 +28,7 @@ namespace Retrace.assets.retrace.PathFinding.Algorithms
             _nodeCache.Clear();
             if (_grid.IsAirLike(endPos))
             {
-                // we check 3 blocks below for a valid target position
+                // we also check 3 blocks below for a valid target position
                 bool foundValid = false;
                 for (int i = 0; i < 3; i++)
                 {
@@ -62,13 +62,13 @@ namespace Retrace.assets.retrace.PathFinding.Algorithms
                 }
                 Node currentNode = openSet.OrderBy(n => n.fCost).ThenBy(n => n.hCost).First();
 
-                if (currentNode.pos.Equals(endNode.pos))
+                if (currentNode.Pos.Equals(endNode.Pos))
                     return RetracePath(startNode, endNode);
 
                 openSet.Remove(currentNode);
                 closedSet.Add(currentNode);
 
-                foreach (var neighborPos in _grid.GetNeighborPositions(currentNode.pos))
+                foreach (var neighborPos in _grid.GetValidNeighborPositions(currentNode.Pos))
                 {
                     Node neighbor = GetCachedNode(neighborPos);
                     if (closedSet.Contains(neighbor))
@@ -80,7 +80,7 @@ namespace Retrace.assets.retrace.PathFinding.Algorithms
                     {
                         neighbor.gCost = tentativeGCost;
                         neighbor.hCost = GetHeuristic(neighbor, endNode);
-                        neighbor.parent = currentNode;
+                        neighbor.Parent = currentNode;
 
                         if (!openSet.Contains(neighbor))
                             openSet.Add(neighbor);
@@ -102,9 +102,9 @@ namespace Retrace.assets.retrace.PathFinding.Algorithms
 
         private int GetHeuristic(Node a, Node b)
         {
-            double dx = a.pos.X - b.pos.X;
-            double dy = a.pos.Y - b.pos.Y;
-            double dz = a.pos.Z - b.pos.Z;
+            double dx = a.Pos.X - b.Pos.X;
+            double dy = a.Pos.Y - b.Pos.Y;
+            double dz = a.Pos.Z - b.Pos.Z;
 
             return (int)(Math.Sqrt(dx * dx + dy * dy + dz * dz) * 10); // scale up to match gCost units
 
@@ -113,9 +113,9 @@ namespace Retrace.assets.retrace.PathFinding.Algorithms
 
         private int GetMoveCost(Node currentNode, Node neighbor)
         {
-            int dx = Math.Abs(neighbor.pos.X - currentNode.pos.X);
-            int dy = Math.Abs(neighbor.pos.Y - currentNode.pos.Y);
-            int dz = Math.Abs(neighbor.pos.Z - currentNode.pos.Z);
+            int dx = Math.Abs(neighbor.Pos.X - currentNode.Pos.X);
+            int dy = Math.Abs(neighbor.Pos.Y - currentNode.Pos.Y);
+            int dz = Math.Abs(neighbor.Pos.Z - currentNode.Pos.Z);
 
             int moveCost = _moveStraightCost;
             if (dx + dy + dz == 2) moveCost = _moveDiagonal2DCost;
@@ -131,7 +131,7 @@ namespace Retrace.assets.retrace.PathFinding.Algorithms
             while (current != null && current != start)
             {
                 path.Add(current);
-                current = current.parent;
+                current = current.Parent;
             }
 
             if (current == null)

@@ -34,14 +34,14 @@ namespace Retrace.assets.retrace.pathfinding
         {
             _path = new();
             _api = api;
-            _gridManager = new(api.World.BlockAccessor);
+            _gridManager = new(api);
             _aStar = new(_gridManager);
             SetMouseEvents();
             SetHokeys();
             SetCommands();
         }
 
-        public void FindPath(BlockPos start, BlockPos end, bool startPosIsPlayer = true)
+        private void FindPath(BlockPos start, BlockPos end, bool startPosIsPlayer = true)
         {
             if(_isSearching || _isFollowingPath)
             {
@@ -80,37 +80,29 @@ namespace Retrace.assets.retrace.pathfinding
             }, token);
         }
         
-        public void FollowPath(CancellationToken token)
+        private void FollowPath(CancellationToken token)
         {
             _isFollowingPath = true;
             int step = 0;
 
             PathRenderer pathRenderer = new(_api);
-            pathRenderer.path = _path;
-
-            _api.Event.EnqueueMainThreadTask(() =>
-            {
-                _api.Event.RegisterRenderer(pathRenderer, EnumRenderStage.AfterBlit);
-            }, "RegisterRenderer");
+            RegisterPathRenderer(pathRenderer);
 
             _id = _api.World.RegisterGameTickListener((dt) =>
             {
                 pathRenderer.step = step;
-                Vec3d nextPos = _path[step].pos.ToVec3d();
+                Vec3d nextPos = _path[step].Pos.ToVec3d();
 
-                AdjustYOffset(nextPos, _path[step].block);
+                AdjustYOffset(nextPos, _path[step].Block);
                 OffsetToBlockCenter(nextPos);
 
-                // TODO: if over nextPos stop all input
-                // also check that for the future positions part
                 ApplyMovement(nextPos);
                 ApplyRotation(nextPos);
                 ApplySprintAndJump(nextPos);
-                
 
                 if (IsNextPosReached(nextPos, ref step))
                 {
-                    _path[step].ExecuteOnNodeReached(_api, _path[step].pos);
+                    _path[step].ExecuteOnNodeReached(_api, _path[step].Pos);
                     step++;
                     
                     if (step == _path.Count)
@@ -121,7 +113,7 @@ namespace Retrace.assets.retrace.pathfinding
                         ShowChatMessage("Path following completed.");
                         return;
                     }
-                    _path[step].ExecuteOnNodeSetAsNext(_api, _path[step].pos);
+                    _path[step].ExecuteOnNodeSetAsNext(_api, _path[step].Pos);
                 }
 
                 if (token.IsCancellationRequested)
@@ -174,6 +166,23 @@ namespace Retrace.assets.retrace.pathfinding
         }
         
         private void SetHokeys()
+        {
+            RegisterHotkeyFindPath();
+            RegisterHotkeyDebug();
+        }
+
+        private void RegisterHotkeyDebug()
+        {
+            _api.Input.RegisterHotKey("retrace:debug", "debug", GlKeys.O, HotkeyType.GUIOrOtherControls);
+            _api.Input.SetHotKeyHandler(_api.Input.GetHotKeyByCode("retrace:debug").Code, (a) =>
+            {
+                BlockSelection sel = _api.World.Player.CurrentBlockSelection;
+                Console.WriteLine("debug");
+                return true;
+            });
+        }
+
+        private void RegisterHotkeyFindPath()
         {
             _api.Input.RegisterHotKey("retrace:findpath", "find path", GlKeys.N, HotkeyType.GUIOrOtherControls);
             _api.Input.SetHotKeyHandler(_api.Input.GetHotKeyByCode("retrace:findpath").Code, (a) =>
@@ -263,9 +272,9 @@ namespace Retrace.assets.retrace.pathfinding
             for (int i = 1; i <= 3; i++)
             {
                 if (step + i >= _path.Count) break;
-                Vec3d futurePos = _path[step + i].pos.ToVec3d();
+                Vec3d futurePos = _path[step + i].Pos.ToVec3d();
 
-                AdjustYOffset(futurePos, _path[step + i].block);
+                AdjustYOffset(futurePos, _path[step + i].Block);
                 if (_player.Entity.Pos.AsBlockPos == futurePos.AsBlockPos)
                 {
                     step = step + i;
@@ -341,6 +350,16 @@ namespace Retrace.assets.retrace.pathfinding
             {
                 _api.ShowChatMessage(message);
             }, "ShowChatMessage");
+        }
+
+        private void RegisterPathRenderer(PathRenderer pathRenderer)
+        {
+            pathRenderer.path = _path;
+
+            _api.Event.EnqueueMainThreadTask(() =>
+            {
+                _api.Event.RegisterRenderer(pathRenderer, EnumRenderStage.AfterBlit);
+            }, "RegisterRenderer");
         }
     }
 }

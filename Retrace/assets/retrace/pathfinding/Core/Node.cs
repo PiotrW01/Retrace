@@ -7,24 +7,31 @@ namespace Retrace.assets.retrace.PathFinding.Core
 {
     internal class Node
     {
-        public Node parent { get; set; }
-        public BlockPos pos { get; set; }
-        public Block block { get; set; }
+        public Node Parent { get; set; }
+        public BlockPos Pos { get; set; }
+        public Block Block { get; set; }
 
         public int gCost { get; set; }
         public int hCost { get; set; }
         public int fCost => gCost + hCost;
 
-        public bool walkable { get; set; }
+        public bool Walkable { get; set; }
 
         public Action<ICoreClientAPI, BlockPos> OnNodeSetAsNext;
         public Action<ICoreClientAPI, BlockPos> OnNodeReached;
 
-        public Node(BlockPos pos, Block block, bool walkable)
+        public event Action<ICoreClientAPI, BlockPos> OnTick;
+
+        public Node(BlockPos pos, Block block, bool walkable = true)
         {
-            this.pos = pos;
-            this.block = block;
-            this.walkable = walkable;
+            this.Pos = pos;
+            this.Block = block;
+            this.Walkable = walkable;
+        }
+
+        public void TriggerOnTick(ICoreClientAPI api, BlockPos blockPos)
+        {
+            OnTick?.Invoke(api, blockPos);
         }
 
         public void ExecuteOnNodeSetAsNext(ICoreClientAPI api, BlockPos blockPos)
@@ -39,12 +46,12 @@ namespace Retrace.assets.retrace.PathFinding.Core
 
         public override bool Equals(object obj)
         {
-            return obj is Node other && pos.Equals(other.pos);
+            return obj is Node other && Pos.Equals(other.Pos);
         }
 
         public override int GetHashCode()
         {
-            return pos.GetHashCode();
+            return Pos.GetHashCode();
         }
     }
 }

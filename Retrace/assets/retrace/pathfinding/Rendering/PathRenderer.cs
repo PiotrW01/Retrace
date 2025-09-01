@@ -29,8 +29,8 @@ namespace Retrace.assets.retrace.PathFinding.Rendering
             for (int i = step; i < step + pathLinesDrawAmount; i++)
             {
                 if (i + 1 >= path.Count) break;
-                Vec3f pos1 = path[i].pos.ToVec3f();
-                Vec3f pos2 = path[i + 1].pos.ToVec3f();
+                Vec3f pos1 = path[i].Pos.ToVec3f();
+                Vec3f pos2 = path[i + 1].Pos.ToVec3f();
                 Vec3f dpos = pos2 - pos1;
 
                 float xcenter = 0.5f;

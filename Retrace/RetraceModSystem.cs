@@ -1,6 +1,7 @@
 ﻿using Retrace.assets.retrace.pathfinding;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.Client.NoObf;
 
 namespace Retrace
 {
